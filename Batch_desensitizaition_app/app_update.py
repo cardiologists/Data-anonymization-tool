@@ -538,7 +538,7 @@ class JPEGPreviewWindow(tk.Toplevel):
         if first_frame is not None:
             self.base_frame = first_frame.copy()
         else:
-            self.base_frame = cv2.imread(image_path)
+            self.base_frame = safe_imread(image_path)
             if self.base_frame is None:
                 raise RuntimeError("Cannot read JPEG image")
 
@@ -887,8 +887,8 @@ class BatchAnonymizationApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Batch Medical Data Desensitization")
-        self.center_window(560, 620)
-        self.root.resizable(False, False)
+        self.center_window(620, 620)
+        self.root.resizable(True, True)
 
         self.keep_original = tk.BooleanVar(value=True)
 
@@ -1220,7 +1220,7 @@ class BatchAnonymizationApp:
                     jpeg_path = os.path.join(jpeg_dir, f)
                     try:
                         # 读取图片
-                        img = cv2.imread(jpeg_path)
+                        img = safe_imread(jpeg_path)
                         if img is not None:
                             sample_image = img
                             break
@@ -1234,7 +1234,7 @@ class BatchAnonymizationApp:
                     if f.lower().endswith((".jpg", ".jpeg")):
                         jpeg_path = os.path.join(root, f)
                         try:
-                            img = cv2.imread(jpeg_path)
+                            img = safe_imread(jpeg_path)
                             if img is not None:
                                 sample_image = img
                                 break
@@ -1361,7 +1361,7 @@ class BatchAnonymizationApp:
 
             try:
                 # 读取图片
-                img = cv2.imread(jpeg_path)
+                img = safe_imread(jpeg_path)
                 if img is None:
                     continue
 
@@ -1393,7 +1393,7 @@ class BatchAnonymizationApp:
                         result = cv2.inpaint(result, mask, 3, cv2.INPAINT_TELEA)
 
                 # 保存结果
-                cv2.imwrite(jpeg_path, result)
+                safe_imwrite(jpeg_path, result)
                 jpeg_count += 1
 
                 # if i % 50 == 0:  # 每处理50个文件报告一次
@@ -1909,6 +1909,20 @@ def show_info_dialog(parent):
 
     parent.wait_window(dialog)
     return agreed["ok"]
+
+
+def safe_imread(path, flags=cv2.IMREAD_COLOR):
+    data = np.fromfile(path, dtype=np.uint8)
+    if data.size == 0:
+        return None
+    return cv2.imdecode(data, flags)
+
+def safe_imwrite(path, img):
+    ext = os.path.splitext(path)[1]
+    success, encoded = cv2.imencode(ext, img)
+    if not success:
+        raise RuntimeError("imencode failed")
+    encoded.tofile(path)
 
 
 if __name__ == "__main__":
