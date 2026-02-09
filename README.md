@@ -30,5 +30,5 @@ The goal of this project is to support secure data sharing, research, and compli
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
+git clone https://github.com/cardiologists/Data-anonymization-tool.git
 cd your-repo-name
